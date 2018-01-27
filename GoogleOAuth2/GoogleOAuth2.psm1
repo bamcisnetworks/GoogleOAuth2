@@ -1,66 +1,374 @@
 [System.Collections.Hashtable]$script:OAuthTokens = @{}
 $script:ProfileLocation = "$env:USERPROFILE\.google\credentials"
-[System.String[]]$script:NoUrlScopes = @("https://mail.google.com/", "profile", "email", "openid", "servicecontrol", "cloud-platform-service-control", "service.management")
-[System.String[]]$script:EncryptedProperties = @("access_token", "refresh_token", "client_secret", "jwt")
+
+[System.String]$script:refresh_token = "refresh_token"
+[System.String]$script:access_token = "access_token"
+[System.String]$script:client_secret = "client_secret"
+[System.String]$script:iss = "iss"
+[System.String]$script:validity = "validity"
+[System.String]$script:scope = "scope"
+[System.String]$script:sub = "sub"
+
+[System.String[]]$script:NoUrlScopes = @("https://mail.google.com/", "https://www.google.com/calendar/feeds", "https://www.google.com/m8/feeds", "profile", "email", "openid", "servicecontrol", "cloud-platform-service-control", "service.management-service-management")
+[System.String[]]$script:EncryptedProperties = @($script:access_token, $script:refresh_token, $script:client_secret)
 [System.String[]]$script:Scopes = @(
-	"xapi.zoo",
-    "adexchange.buyer",
-    "adexchange.buyer",
-    "adexchange.seller",
-    "admin.datatransfer",
-    "admin.datatransfer.readonly",
-    "admin.directory.customer",
-    "admin.directory.customer.readonly",
-    "admin.directory.device.chromeos",
-    "admin.directory.device.chromeos.readonly",
-    "admin.directory.device.mobile",
-    "admin.directory.device.mobile.action",
-    "admin.directory.device.mobile.readonly",
-    "admin.directory.domain",
-    "admin.directory.domain.readonly",
+	"activity",
+	"adexchange.buyer",
+	"adexchange.seller",
+	"admin.datatransfer",
+	"admin.datatransfer.readonly",
+	"admin.directory.customer",
+	"admin.directory.customer.readonly",
+	"admin.directory.device.chromeos",
+	"admin.directory.device.chromeos.readonly",
+	"admin.directory.device.mobile",
+	"admin.directory.device.mobile.action",
+	"admin.directory.device.mobile.readonly",
+	"admin.directory.domain",
+	"admin.directory.domain.readonly",
 	"admin.directory.group",
-    "admin.directory.group.member",
-    "admin.directory.group.member.readonly",
-    "admin.directory.group.readonly",
-    "admin.directory.notifications",
-    "admin.directory.orgunit",
-    "admin.directory.orgunit.readonly",
-    "admin.directory.resource.calendar",
-    "admin.directory.resource.calendar.readonly",
-    "admin.directory.rolemanagement",
-    "admin.directory.rolemanagement.readonly",
-    "admin.directory.user",
-    "admin.directory.user.alias",
-    "admin.directory.user.alias.readonly",
-    "admin.directory.user.readonly",
-    "admin.directory.user.security",
-    "admin.directory.userschema",
-    "admin.directory.userschema.readonly",
-    "admin.reports.audit.readonly",
-    "admin.reports.usage.readonly",
-    "adsense",
-    "adsense.readonly",
-    "adsensehost",
-    "analytics",
-    "analytics.edit",
-    "analytics.manage.users",
-    "analytics.manage.users.readonly",
-    "analytics.provision",
-    "analytics.readonly",
-    "androidenterprise",
-    "androidmanagement",
-    "androidpublisher",
-    "appengine.admin",
-    "cloud-platform",
-    "cloud-platform.read-only",
-    "activity",
-    "drive",
-    "drive.metadata",
-    "drive.metadata.readonly",
-    "drive.readonly"
+	"admin.directory.group.member",
+	"admin.directory.group.member.readonly",
+	"admin.directory.group.readonly",
+	"admin.directory.notifications",
+	"admin.directory.orgunit",
+	"admin.directory.orgunit.readonly",
+	"admin.directory.resource.calendar",
+	"admin.directory.resource.calendar.readonly",
+	"admin.directory.rolemanagement",
+	"admin.directory.rolemanagement.readonly",
+	"admin.directory.user",
+	"admin.directory.user.alias",
+	"admin.directory.user.alias.readonly",
+	"admin.directory.user.readonly",
+	"admin.directory.user.security",
+	"admin.directory.userschema",
+	"admin.directory.userschema.readonly",
+	"admin.reports.audit.readonly",
+	"admin.reports.usage.readonly",
+	"adsense",
+	"adsense.readonly",
+	"adsensehost",
+	"analytics",
+	"analytics.edit",
+	"analytics.manage.users",
+	"analytics.manage.users.readonly",
+	"analytics.provision",
+	"analytics.readonly",
+	"androidenterprise",
+	"androidmanagement",
+	"androidpublisher",
+	"appengine.admin",
+	"apps.groups.migration",
+	"apps.groups.settings",
+	"apps.licensing",
+	"apps.order",
+	"apps.order.readonly",
+	"appstate",
+	"bigquery",
+	"bigquery.insertdata",
+	"blogger",
+	"blogger.readonly",
+	"books",
+	"calendar",
+	"calendar.readonly",
+	"classroom.announcements",
+	"classroom.announcements.readonly",
+	"classroom.courses",
+	"classroom.courses.readonly",
+	"classroom.coursework.me",
+	"classroom.coursework.me.readonly",
+	"classroom.coursework.students",
+	"classroom.coursework.students.readonly",
+	"classroom.guardianlinks.me.readonly",
+	"classroom.guardianlinks.students",
+	"classroom.guardianlinks.students.readonly",
+	"classroom.profile.emails",
+	"classroom.profile.photos",
+	"classroom.push-notifications",
+	"classroom.rosters",
+	"classroom.rosters.readonly",
+	"classroom.student-submissions.me.readonly",
+	"classroom.student-submissions.students.readonly",
+	"cloud.useraccounts",
+	"cloud.useraccounts.readonly",
+	"cloud_debugger",
+	"cloudiot",
+	"cloud-language",
+	"cloud-platform",
+	"cloud-platform.read-only",
+	"cloud-platform-service-control",
+	"cloudruntimeconfig",
+	"cloud-translation",
+	"cloud-vision",
+	"compute",
+	"compute.readonly",
+	"contacts",
+	"contacts.readonly",
+	"content",
+	"datastore",
+	"ddmconversions",
+	"devstorage.full_control",
+	"devstorage.read_only",
+	"devstorage.read_write",
+	"dfareporting",
+	"dfatrafficking",
+	"doubleclickbidmanager",
+	"doubleclicksearch",
+	"drive",
+	"drive.appdata",
+	"drive.file",
+	"drive.metadata",
+	"drive.metadata.readonly",
+	"drive.photos.readonly",
+	"drive.readonly",
+	"drive.scripts",
+	"ediscovery",
+	"ediscovery.readonly",
+	"email",
+	"firebase",
+	"firebase.readonly",
+	"fitness.activity.read",
+	"fitness.activity.write",
+	"fitness.blood_glucose.read",
+	"fitness.blood_glucose.write",
+	"fitness.blood_pressure.read",
+	"fitness.blood_pressure.write",
+	"fitness.body.read",
+	"fitness.body.write",
+	"fitness.body_temperature.read",
+	"fitness.body_temperature.write",
+	"fitness.location.read",
+	"fitness.location.write",
+	"fitness.nutrition.read",
+	"fitness.nutrition.write",
+	"fitness.oxygen_saturation.read",
+	"fitness.oxygen_saturation.write",
+	"fitness.reproductive_health.read",
+	"fitness.reproductive_health.write",
+	"forms",
+	"forms.currentonly",
+	"fusiontables",
+	"fusiontables.readonly",
+	"games",
+	"genomics",
+	"genomics.readonly",
+	"glass.location",
+	"glass.timeline",
+	"gmail.compose",
+	"gmail.insert",
+	"gmail.labels",
+	"gmail.metadata",
+	"gmail.modify",
+	"gmail.readonly",
+	"gmail.send",
+	"gmail.settings.basic",
+	"gmail.settings.sharing",
+	"groups",
+	"https://mail.google.com/",
+	"https://www.google.com/calendar/feeds",
+	"https://www.google.com/m8/feeds",
+	"logging.admin",
+	"logging.read",
+	"logging.write",
+	"manufacturercenter",
+	"monitoring",
+	"monitoring.read",
+	"monitoring.write",
+	"ndev.clouddns.readonly",
+	"ndev.clouddns.readwrite",
+	"ndev.cloudman",
+	"ndev.cloudman.readonly",
+	"openid",
+	"plus.circles.read",
+	"plus.circles.write",
+	"plus.login",
+	"plus.me",
+	"plus.media.upload",
+	"plus.profiles.read",
+	"plus.stream.read",
+	"plus.stream.write",
+	"prediction",
+	"presentations",
+	"presentations.readonly",
+	"profile",
+	"pubsub",
+	"replicapool",
+	"replicapool.readonly",
+	"service.management",
+	"service.management.readonly",
+	"service.management-service-management",
+	"servicecontrol",
+	"siteverification",
+	"siteverification.verify_only",
+	"source.full_control",
+	"source.read_only",
+	"source.read_write",
+	"spanner.admin",
+	"spanner.data",
+	"spreadsheets",
+	"spreadsheets.readonly",
+	"sqlservice.admin",
+	"streetviewpublish",
+	"tagmanager.delete.containers",
+	"tagmanager.edit.containers",
+	"tagmanager.edit.containerversions",
+	"tagmanager.manage.accounts",
+	"tagmanager.manage.users",
+	"tagmanager.publish",
+	"tagmanager.readonly",
+	"taskqueue",
+	"taskqueue.consumer",
+	"tasks",
+	"tasks.readonly",
+	"trace.append",
+	"urlshortener",
+	"user.addresses.read",
+	"user.birthday.read",
+	"user.emails.read",
+	"user.phonenumbers.read",
+	"userinfo.email",
+	"userinfo.profile",
+	"userlocation.beacon.registry",
+	"webmasters",
+	"webmasters.readonly",
+	"xapi.zoo",
+	"youtube",
+	"youtube.force-ssl",
+	"youtube.readonly",
+	"youtube.upload",
+	"youtubepartner",
+	"youtubepartner-channel-audit",
+	"yt-analytics.readonly",
+	"yt-analytics-monetary.readonly"
 )
 
+
 #region Base64Url
+
+Function Invoke-Base64UrlEscape {
+	<#
+		.SYNOPSIS
+			Performs character escaping on a string that is already base64 encoded.
+
+		.DESCRIPTION
+			This cmdlet takes an input and escapes url characters, changing + to - and / to _. The specified
+			padding character is also removed from the end.
+
+		.PARAMETER InputObject
+			The base64 string to escape.
+
+		.PARAMETER Padding
+			The trailing padding character to remove. This defaults to '='.
+
+		.EXAMPLE
+			$Base64Str = "SGVsbG8gV29y/bGQhIEhlbG+xvIQ=="
+			$EscapedStr = $Base64Str | Invoke-Base64UrlEscape
+
+			The escaped string will be "SGVsbG8gV29y_bGQhIEhlbG-xvIQ".
+
+		.INPUTS
+			System.String
+
+		.OUTPUTS
+			System.String
+
+		.NOTES
+            AUTHOR: Michael Haken
+			LAST UPDATE: 1/27/2018
+	#>
+	[CmdletBinding()]
+	Param(
+		[Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
+		[System.String]$InputObject,
+
+		[Parameter()]
+		[ValidateNotNull()]
+		[System.Char]$Padding = '='
+	)
+
+	Begin {
+	}
+
+	Process {
+		Write-Output -InputObject $InputObject.TrimEnd($Padding).Replace('+', '-').Replace('/', '_')
+	}
+
+	End {
+	}
+}
+
+Function Invoke-Base64UrlUnescape {
+	<#
+		.SYNOPSIS
+			Performs character unescaping on a string that is already base64 encoded and has already been escaped.
+
+		.DESCRIPTION
+			This cmdlet takes an input and unescapes url characters, changing - to + and _ to /. The appropriate amount
+			of trailing padding is also added back.
+
+		.PARAMETER InputObject
+			The base64 string to unescape.
+
+		.PARAMETER Padding
+			The character that will be used for any necessary trailing padding. This defaults to '='.
+
+		.EXAMPLE
+			$EscapedStr = "SGVsbG8gV29y_bGQhIEhlbG-xvIQ"
+			$Base64Str = $EscapedStr | Invoke-Base64UrlUnescape
+
+			The escaped string will be "SGVsbG8gV29y/bGQhIEhlbG+xvIQ==".
+
+		.INPUTS
+			System.String
+
+		.OUTPUTS
+			System.String
+
+		.NOTES
+            AUTHOR: Michael Haken
+			LAST UPDATE: 1/27/2018
+	#>
+	[CmdletBinding()]
+	Param(
+		[Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
+		[System.String]$InputObject,
+
+		[Parameter()]
+		[ValidateNotNull()]
+		[System.Char]$Padding = '='
+	)
+
+	Begin {
+	}
+
+	Process {
+		$InputObject = $InputObject.Replace('-', '+').Replace('_', '/')
+
+		switch ($InputObject.Length % 4) {
+			0 {
+				# No padding should be added
+				break
+			}
+			2 {
+				$InputObject += "$Padding$Padding"
+				break
+			}
+			3 {
+				$InputObject += $Padding
+				break
+			}
+			default {
+				Write-Error -Exception (New-Object -TypeName System.ArgumentException("InputObject", "The input object is not a legal base64 string.")) -ErrorAction Stop
+			}
+		}
+
+		Write-Output -InputObject $InputObject
+	}
+
+	End {
+	}
+}
 
 Function ConvertTo-Base64UrlEncoding {
 	[CmdletBinding()]
@@ -94,7 +402,7 @@ Function ConvertTo-Base64UrlEncoding {
 		}
 
 		$Temp = [System.Convert]::ToBase64String($Bytes)
-		$Temp = $Temp.TrimEnd($Padding).Replace('+', '-').Replace('/', '_')
+		$Temp = Invoke-Base64UrlEscape -InputObject $Temp -Padding $Padding
 
 		Write-Output -InputObject $Temp
 	}
@@ -127,23 +435,7 @@ Function ConvertFrom-Base64UrlEncoding {
 	}
 
 	Process {
-		$InputObject = $InputObject.Replace('-', '+').Replace('_', '/')
-
-		switch ($InputObject.Length % 4) {
-			0 {
-				break
-			}
-			2 {
-				$InputObject += "$Padding$Padding"
-				break
-			}
-			3 {
-				$InputObject += "$Padding"
-			}
-			default {
-				Write-Error -Exception (New-Object -TypeName System.ArgumentException("InputObject", "The input object is not a legal base64 string.")) -ErrorAction Stop
-			}
-		}
+		$InputObject = Invoke-Base64UrlUnescape -InputObject $InputObject -Padding $Padding
 
 		$Temp = $Encoding.GetString([System.Convert]::FromBase64String($InputObject))
 
@@ -381,9 +673,13 @@ Function Get-GoogleOAuth2Code {
 						{
 							Write-Error -Message "Could not open a web browser" -Exception $_.Exception -ErrorAction Stop
 						}
-						else
+						elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
 						{
 							Write-Warning -Message "Could not open a web browser: $($_.Exception.Message)"
+						}
+						else
+						{
+							Write-Verbose -Message "[ERROR] : Could not open a web browser: $($_.Exception.Message)"
 						}
 					}
 				}
@@ -408,9 +704,13 @@ Function Get-GoogleOAuth2Code {
 			{
 				Write-Error -Message $Content -ErrorAction Stop
 			}
-			else
+			elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
 			{
 				Write-Warning -Message $Content
+			}
+			else
+			{
+				Write-Verbose -Message "[ERROR] : $Content"
 			}
 		}
 		catch [Exception] 
@@ -419,9 +719,13 @@ Function Get-GoogleOAuth2Code {
 			{
 				Write-Error -Exception $_.Exception -ErrorAction Stop
 			}
-			else
+			elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
 			{
 				Write-Warning -Message $_.Exception.Message
+			}
+			else
+			{
+				Write-Verbose -Message "[ERROR] : $($_.Exception.Message)"
 			}
 		}
     }
@@ -541,9 +845,13 @@ Function Convert-GoogleOAuth2Code {
 			{
 				Write-Error -Message $Content -ErrorAction Stop
 			}
-			else
+			elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
 			{
 				Write-Warning -Message $Content
+			}
+			else
+			{
+				Write-Verbose -Message "[ERROR] : $Content"
 			}
 		}
 		catch [Exception] 
@@ -552,101 +860,13 @@ Function Convert-GoogleOAuth2Code {
 			{
 				Write-Error -Exception $_.Exception -ErrorAction Stop
 			}
-			else
+			elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
 			{
 				Write-Warning -Message $_.Exception.Message
 			}
-		}
-	}
-
-	End {
-	}
-}
-
-Function Convert-GoogleOAuth2JWT {
-	[CmdletBinding()]
-	[OutputType()]
-	Param(
-		[Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-		[ValidateScript({
-			$_.Split(".").Length -eq 3
-		})]
-        [System.String]$JWT,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [System.String]$ClientId,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [System.String]$ClientSecret,
-
-		[Parameter()]
-        [System.String]$ProfileLocation,
-
-        [Parameter()]
-        [Switch]$Persist
-	)
-
-	Begin {
-	}
-
-	Process {
-		$GrantType = [System.Uri]::EscapeUriString("urn:ietf:params:oauth:grant-type:jwt-bearer")
-		$Assertion = $JWT
-
-		$Body = "grant_type=$GrantType&assertion=$Assertion"
-
-		$SAUrl = "https://www.googleapis.com/oauth2/v4/token"
-
-		try {
-			Write-Verbose -Message "POST Body: $Body"
-			[Microsoft.PowerShell.Commands.WebResponseObject]$Response = Invoke-WebRequest -Uri $SAUrl -Method Post -Body $Body -ErrorAction Ignore -UserAgent PowerShell
-
-			[PSCustomObject]$Token = ConvertFrom-Json -InputObject ($Response.Content)
-
-			[System.Collections.Hashtable]$Temp = @{}
-
-			foreach ($Item in (Get-Member -InputObject $Token -MemberType Properties | Select-Object -ExpandProperty Name))
-			{
-				$Temp.Add($Item, $Token.$Item)
-			}
-
-			[System.String[]]$JWTParts = $JWT.Split(".")
-
-			[PSCustomObject]$JWTClaimSet = ConvertFrom-Json -InputObject ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($JWTParts[1])))
-
-			Set-GoogleOAuth2Profile -ServiceAccountEmail $ClientId -AccessToken $Temp["access_token"] -ProfileLocation $ProfileLocation -Persist:$Persist
-
-			Write-Output -InputObject $Temp
-		}
-		catch [System.Net.WebException] 
-		{
-			[System.Net.WebException]$Ex = $_.Exception
-			$Stream = $Ex.Response.GetResponseStream()
-			[System.Text.Encoding]$Encoding = [System.Text.Encoding]::GetEncoding("utf-8")
-			[System.IO.StreamReader]$Reader = New-Object -TypeName System.IO.StreamReader($Stream, $Encoding)
-			$Content = $Reader.ReadToEnd()
-            
-			if ($ErrorActionPreference -eq [System.Management.Automation.ActionPreference]::Stop)
-			{
-				Write-Error -Message $Content -ErrorAction Stop
-			}
 			else
 			{
-				Write-Warning -Message $Content
-			}
-		}
-		catch [Exception] 
-		{
-			if ($ErrorActionPreference -eq [System.Management.Automation.ActionPreference]::Stop)
-			{
-				Write-Error -Exception $_.Exception -ErrorAction Stop
-			}
-			else
-			{
-				Write-Warning -Message $_.Exception.Message
+				Write-Verbose -Message "[ERROR] : $($_.Exception.Message)"
 			}
 		}
 	}
@@ -782,7 +1002,7 @@ Function Get-GoogleOAuth2Token {
 			Write-Error -Exception (New-Object -TypeName System.Collections.Generic.KeyNotFoundException("No stored tokens for profile $ClientId.")) -ErrorAction Stop
 		}
 
-		if (-not $Token.ContainsKey("client_secret"))
+		if (-not $Token.ContainsKey($script:client_secret))
 		{
 			Write-Error -Exception (New-Object -TypeName System.Collections.Generic.KeyNotFoundException("The stored token for profile $ClientId does not contain the required client_secret.")) -ErrorAction Stop
 		}
@@ -794,22 +1014,22 @@ Function Get-GoogleOAuth2Token {
 			"client" {
 				# If the token contains an refresh token, we should check to see if we need to get
 				# or renew the access token
-				if ($Token.ContainsKey("refresh_token"))
+				if ($Token.ContainsKey($script:refresh_token))
 				{
 					[System.Collections.Hashtable]$TokenToReturn = @{}
 
 					# If there's an access token and refresh token, let's make sure it's up to date
-					if ($Token.ContainsKey("access_token"))
+					if ($Token.ContainsKey($script:access_token))
 					{
 						# Check the access token to see if it's expired, if it is, refresh, otherwise, return as is
 
-						$Expired = Test-IsGoogleOAuth2TokenExpired -AccessToken $Token["access_token"]
+						$Expired = Test-IsGoogleOAuth2TokenExpired -AccessToken $Token[$script:access_token] -ErrorAction Ignore
 
 						if ($Expired)
 						{
 							Write-Verbose -Message "The current access token is expired, getting a new one."
 							# This will update the cache and persisted data store if necessary
-							$TokenToReturn = Update-GoogleOAuth2Token -RefreshToken $Token["refresh_token"] -ClientId $ClientId -ClientSecret $Token["client_secret"] -Persist:$Persist
+							$TokenToReturn = Update-GoogleOAuth2Token -RefreshToken $Token[$script:refresh_token] -ClientId $ClientId -ClientSecret $Token[$script:client_secret] -Persist:$Persist
 						}
 						else
 						{
@@ -824,12 +1044,12 @@ Function Get-GoogleOAuth2Token {
 						# refresh token
 						# Since there wasn't a persisted access_token, either on disk or in the cache, this will add that access_token to the
 						# cache so we can continue to use it later
-						$TokenToReturn = Update-GoogleOAuth2Token -RefreshToken $Token["refresh_token"] -ClientId $ClientId -ClientSecret $Token["client_secret"] -Persist:$Persist
+						$TokenToReturn = Update-GoogleOAuth2Token -RefreshToken $Token[$script:refresh_token] -ClientId $ClientId -ClientSecret $Token[$script:client_secret] -Persist:$Persist
 					}
 
 					Write-Output -InputObject $TokenToReturn
 				}
-				elseif ($Token.ContainsKey("access_token"))
+				elseif ($Token.ContainsKey($script:access_token))
 				{
 					# There's no refresh token, so just use this and hope it's not expired
 					Write-Output -InputObject $Token
@@ -846,39 +1066,34 @@ Function Get-GoogleOAuth2Token {
 				break
 			}
 			"sa" {
-				if ($Token.ContainsKey("access_token"))
+				if ($Token.ContainsKey($script:access_token))
 				{
-					if ($Token.ContainsKey("jwt"))
-					{
-						[System.String[]]$JWTParts = $Token["jwt"].Split(".")
-						
-						if ($JWTParts.Length -eq 3)
-						{
-							[System.String]$Json = ConvertFrom-Base64UrlEncoding -InputObject $JWTParts[1]
-							[PSCustomObject]$JWTClaims = ConvertFrom-Json -InputObject $Json
-						
-							[System.Int64]$Expires = $JWTClaims.exp
-
-							[System.DateTime]$Expiration = (New-Object -TypeName System.DateTime(1970, 1, 1, 0, 0, 0, [System.DateTimeKind]::Utc)).AddSeconds($Expires)
-							Write-Verbose -Message "The current JWT expires $($Expiration.ToString("yyyy-MM-ddTHH:mm:ssZ"))."
-
-							[System.Boolean]$Expired = ([System.DateTime]::UtcNow) -gt $Expiration
+					$Expired = Test-IsGoogleOAuth2TokenExpired -AccessToken $Token[$script:access_token] -ErrorAction Ignore
 			
-							if ($Expired)
-							{
-								[System.String]$NewJWT = New-GoogleServiceAccountJWT -ClientSecret $Token["client_secret"] -Issuer $JWTClaims.iss -Scope $JWTClaims.scope -Subject $JWTClaims.sub
+					if ($Expired)
+					{
+						Write-Verbose -Message "The current access token is expired, getting a new one."
 
-								[System.Collections.Hashtable]$Tok = Convert-GoogleOAuth2JWT -JWT $NewJWT -ClientId $ClientId -ClientSecret $Token["client_secret"] -ProfileLocation $ProfileLocation -Persist:$Persist
-								Write-Output -InputObject $Tok
-							}
-							else
+						if ($Token.ContainsKey($script:scope) -and $Token.ContainsKey($script:iss) -and $Token.ContainsKey($script:client_secret))
+						{
+							[System.Collections.Hashtable]$JWTSplat = @{}
+							if ($Token.Contains($script:sub) -and -not [System.String]::IsNullOrEmpty($Token[$script:sub]))
 							{
-								Write-Output -InputObject $Token
+								$JWTSplat.Add("Subject", $Token[$script:sub])
 							}
+
+							if ($Token.Contains($script:validity))
+							{
+								$JWTSplat.Add("ValidityInSeconds", $Token[$script:validity])
+							}
+
+							[System.String]$NewJWT = New-GoogleServiceAccountJWT -ClientSecret $Token[$script:client_secret] -Issuer $Token[$script:iss] -Scope $Token[$script:scope] @JWTSplat
+							[System.Collections.Hashtable]$TokenFromJWT = Convert-GoogleOAuth2JWT -JWT $NewJWT -ClientId $ClientId -ClientSecret $Token[$script:client_secret] -ProfileLocation $ProfileLocation -Persist:$Persist
+							Write-Output -InputObject $TokenFromJWT
 						}
 						else
 						{
-							Write-Error -Exception (New-Object -TypeName System.ArgumentException("jwt", "The stored JWT for $ClientId is not correctly formatted.")) -ErrorAction Stop
+							Write-Error -Exception (New-Object -TypeName System.NotSupportedException("The stored profile does not have the required attributes to renew the expired access token for $ClientId.")) -ErrorAction Stop  
 						}
 					}
 					else
@@ -888,28 +1103,23 @@ Function Get-GoogleOAuth2Token {
 				}
 				else
 				{
-					if ($Token.ContainsKey("jwt"))
+					Write-Verbose "No stored access token for $ClientId"
+					if ($Token.ContainsKey($script:scope) -and $Token.ContainsKey($script:iss) -and $Token.ContainsKey($script:client_secret))
 					{
-						[System.String[]]$JWTParts = $Token["jwt"].Split(".")
-
-						if ($JWTParts.Length -eq 3)
+						[System.Collections.Hashtable]$SubSplat = @{}
+						if ($Token.Contains($script:sub) -and -not [System.String]::IsNullOrEmpty($Token[$script:sub]))
 						{
-							[System.String]$Json = ConvertFrom-Base64UrlEncoding -InputObject $JWTParts[1]
-							[PSCustomObject]$JWTClaims = ConvertFrom-Json -InputObject $Json
-							[System.String]$NewJWT = New-GoogleServiceAccountJWT -ClientSecret $Token["client_secret"] -Issuer $JWTClaims.iss -Scope $JWTClaims.scope -Subject $JWTClaims.sub
+							$SubSplat.Add("Subject", $Token[$script:sub])
+						}
 
-							[System.Collections.Hashtable]$Tok = Convert-GoogleOAuth2JWT -JWT $NewJWT -ClientId $ClientId -ClientSecret $Token["client_secret"] -ProfileLocation $ProfileLocation -Persist:$Persist
-							Write-Output -InputObject $Tok["access_token"]
-						}
-						else
-						{
-							Write-Error -Exception (New-Object -TypeName System.ArgumentException("jwt", "The stored JWT for $ClientId is not correctly formatted.")) -ErrorAction Stop
-						}
+						[System.String]$NewJWT = New-GoogleServiceAccountJWT -ClientSecret $Token[$script:client_secret] -Issuer $Token[$script:iss] -Scope $Token[$script:scop] @SubSplat
+						[System.Collections.Hashtable]$TokenFromJWT = Convert-GoogleOAuth2JWT -JWT $NewJWT -ClientId $ClientId -ClientSecret $Token[$script:client_secret] -ProfileLocation $ProfileLocation -Persist:$Persist
+						Write-Output -InputObject $TokenFromJWT
 					}
 					else
 					{
-						Write-Verbose -Message "No stored tokens or jwt found for $ClientId, removing it from the cache and persisted data store."
-						Remove-GoogleOAuth2Profile -ClientId $ClientId -ProfileLocation $ProfileLocation
+						Write-Verbose -Message "No stored tokens or jwt properties found for $ClientId, removing it from the cache and persisted data store."
+						Remove-GoogleOAuth2Profile -ClientId $ClientId -ProfileLocation $ProfileLocation -Force
 					}
 				}
 
@@ -961,10 +1171,10 @@ Function Update-GoogleOAuth2Token {
 				# Use currently stored or cached tokens
 				$TokenData = Get-GoogleOAuth2Profile -ClientId $ClientId -ProfileLocation $ProfileLocation
 
-				if ($TokenData.ContainsKey("refresh_token") -and $TokenData.ContainsKey("client_secret"))
+				if ($TokenData.ContainsKey($script:refresh_token) -and $TokenData.ContainsKey($script:client_secret))
 				{
-					$ClientSecret = $TokenData["client_secret"]
-					$RefreshToken = $TokenData["refresh_token"]
+					$ClientSecret = $TokenData[$script:client_secret]
+					$RefreshToken = $TokenData[$script:refresh_token]
 				}
 				else
 				{
@@ -1016,10 +1226,14 @@ Function Update-GoogleOAuth2Token {
                 {
                     Write-Error -Message "There was a problem refreshing the token: $($Response.Content)" -ErrorAction Stop
                 }
-                else
+                elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
                 {
                     Write-Warning -Message "There was a problem refreshing the token: $($Response.Content)"
                 }
+				else
+				{
+					Write-Verbose -Message "[ERROR] : There was a problem refreshing the token: $($Response.Content)"
+				}
             }
         }
         catch [System.Net.WebException] 
@@ -1034,10 +1248,14 @@ Function Update-GoogleOAuth2Token {
             {
                 Write-Error -Message $Content -ErrorAction Stop
             }
-            else
+            elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
             {
                 Write-Warning -Message $Content
             }
+			else
+			{
+				Write-Verbose -Message "[ERROR] : $Content"
+			}
         }
         catch [Exception] 
         {
@@ -1045,10 +1263,14 @@ Function Update-GoogleOAuth2Token {
             {
                 Write-Error -Exception $_.Exception -ErrorAction Stop
             }
-            else
+            elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
             {
                 Write-Warning -Message $_.Exception.Message
             }
+			else
+			{
+				Write-Verbose -Message "[ERROR] : $($_.Exception.Message)"
+			}
         }
     }
 
@@ -1061,9 +1283,154 @@ Function Update-GoogleOAuth2Token {
 
 #region JWT
 
+Function Convert-GoogleOAuth2JWT {
+	[CmdletBinding()]
+	[OutputType()]
+	Param(
+		[Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+		[ValidateScript({
+			$_.Split(".").Length -eq 3
+		})]
+        [System.String]$JWT,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.String]$ClientId,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.String]$ClientSecret,
+
+		[Parameter()]
+        [System.String]$ProfileLocation,
+
+        [Parameter()]
+        [Switch]$Persist
+	)
+
+	Begin {
+		$BaseUrl = "https://www.googleapis.com/oauth2/v4/token"
+	}
+
+	Process {
+		$GrantType = [System.Uri]::EscapeUriString("urn:ietf:params:oauth:grant-type:jwt-bearer")
+		
+		[System.String[]]$JWTParts = $JWT.Split(".")
+		
+		# Make sure these are escaped if they weren't already
+		for ($i = 0; $i -lt $JWTParts.Length; $i++)
+		{
+			$JWTParts[$i] = Invoke-Base64UrlEscape -InputObject $JWTParts[$i]
+		}
+
+		$Assertion = $JWTParts -join "."
+
+		$Body = "grant_type=$GrantType&assertion=$Assertion"
+
+		try {
+			Write-Verbose -Message "POST Body: $Body"
+			[Microsoft.PowerShell.Commands.WebResponseObject]$Response = Invoke-WebRequest -Uri $BaseUrl -Method Post -Body $Body -ErrorAction Stop -UserAgent PowerShell
+
+			[PSCustomObject]$Token = ConvertFrom-Json -InputObject ($Response.Content)
+
+			[System.Collections.Hashtable]$TokenHashtable = @{}
+
+			foreach ($Item in (Get-Member -InputObject $Token -MemberType Properties | Select-Object -ExpandProperty Name))
+			{
+				$TokenHashtable.Add($Item, $Token.$Item)
+			}
+
+			Set-GoogleOAuth2Profile -ServiceAccountEmail $ClientId -AccessToken $TokenHashtable[$script:access_token] -ProfileLocation $ProfileLocation -Persist:$Persist
+
+			Write-Output -InputObject $TokenHashtable
+		}
+		catch [System.Net.WebException] 
+		{
+			[System.Net.WebException]$Ex = $_.Exception
+			$Stream = $Ex.Response.GetResponseStream()
+			[System.Text.Encoding]$Encoding = [System.Text.Encoding]::GetEncoding("utf-8")
+			[System.IO.StreamReader]$Reader = New-Object -TypeName System.IO.StreamReader($Stream, $Encoding)
+			$Content = $Reader.ReadToEnd()
+            
+			if ($ErrorActionPreference -eq [System.Management.Automation.ActionPreference]::Stop)
+			{
+				Write-Error -Message $Content -ErrorAction Stop
+			}
+			elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
+			{
+				Write-Warning -Message $Content
+			}
+			else
+			{
+				Write-Verbose -Message "[ERROR] $Content"
+			}
+		}
+		catch [Exception] 
+		{
+			if ($ErrorActionPreference -eq [System.Management.Automation.ActionPreference]::Stop)
+			{
+				Write-Error -Exception $_.Exception -ErrorAction Stop
+			}
+			elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
+			{
+				Write-Warning -Message $_.Exception.Message
+			}
+			else
+			{
+				Write-Verbose -Message "[ERROR] $($_.Exception.Message)"
+			}
+		}
+	}
+
+	End {
+	}
+}
+
 Function New-GoogleServiceAccountJWT {
     <#
-	
+		.SYNOPSIS
+			Creates a new JWT from a Google service account.
+
+		.DESCRIPTION
+			This cmdlet creates a new JWT from Google service account credentials. The JWT can be used to gain
+			an access token for subsequent API calls.
+
+			The outputted JWT is a base64 url encoded string.
+
+		.PARAMETER ClientSecret
+			The RSA private key in PEM format associated with the service account.
+
+		.PARAMETER Issuer
+			The service account email address.
+
+		.PARAMETER Audience
+			The URL the JWT is sent to for exchange for an access token. You do not need to specify
+			this parameter.
+
+		.PARAMETER ValidityInSeconds
+			The number of seconds between 1 and 3600 that the JWT (and subsequent access token) is valid.
+		
+		.PARAMETER Subject
+			The email address of the user for which the application is requesting delegated access.
+
+		.PARAMETER Scope
+			A set of API scopes that the service account is requesting permission for.
+
+		.EXAMPLE
+			$JWT = New-GoogleServiceAccountJWT -ClientSecret $ClientSecret -Issuer $ClientId -Scope $Scopes -Subject $Email
+
+			Creates a new JWT from the service account credentials that is used to get an access token.
+
+		.INPUTS
+			None
+
+		.OUTPUTS
+			System.String
+
+		.NOTES
+            AUTHOR: Michael Haken
+			LAST UPDATE: 1/27/2018
 	#>
 	[CmdletBinding()]
 	[OutputType([System.String])]
@@ -1097,8 +1464,8 @@ Function New-GoogleServiceAccountJWT {
 		$ParameterAttribute.Mandatory = $true
 		$AttributeCollection.Add($ParameterAttribute)
 
-		#$ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($script:Scopes)
-		#$AttributeCollection.Add($ValidateSetAttribute)
+		$ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute($script:Scopes)
+		$AttributeCollection.Add($ValidateSetAttribute)
 
 		$RuntimeParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter("Scope", ([System.String[]]), $AttributeCollection)
 		$RuntimeParameterDictionary.Add("Scope", $RuntimeParameter)
@@ -1114,13 +1481,32 @@ Function New-GoogleServiceAccountJWT {
     Process {
 		[System.String[]]$Scope = $PSBoundParameters["Scope"]
 
+		[System.String[]]$FinalScopes = @()
+
+		foreach ($Item in $Scope)
+		{
+			if ($Item -notin $script:NoUrlScopes)
+			{
+				$FinalScopes += "https://www.googleapis.com/auth/$Item"
+			}
+			elseif ($Item -eq "cloud-platform-service-control")
+			{
+				# cloud-platform is used both with a preceding url for some services and without for cloud service control APIs
+				$FinalScopes += "cloud-platform"
+			}
+			else
+			{
+				$FinalScopes += $Item
+			}
+		}
+
         [System.Int64]$Now = ([System.TimeSpan](([System.DateTime]::UtcNow) - (New-Object -TypeName System.DateTime(1970, 1, 1, 0, 0, 0, [System.DateTimeKind]::Utc)))).TotalSeconds
 
-        [System.Collections.Hashtable]$JWT = @{ "iss" = $Issuer; "scope" = $Scope -join " "; "aud" = $Audience; "iat" = $Now; "exp" = $Now + $ValidityInSeconds}
+        [System.Collections.Hashtable]$JWT = @{ $script:iss = $Issuer; $script:scope = $FinalScopes -join " "; "aud" = $Audience; "iat" = $Now; "exp" = $Now + $ValidityInSeconds}
          
         if ($PSBoundParameters.ContainsKey("Subject") -and -not [System.String]::IsNullOrEmpty($Subject))
         {
-           $JWT.Add("sub", $Subject)
+           $JWT.Add($script:sub, $Subject)
         }
 
         $JWTClaimSet = ConvertTo-Base64UrlEncoding -InputObject (ConvertTo-Json -InputObject $JWT -Compress)
@@ -1144,7 +1530,7 @@ Function New-GoogleServiceAccountJWT {
 
 
 #region TokenInfo
-
+	
 Function Test-IsGoogleOAuth2TokenExpired {
 	<#
 		.SYNOPSIS
@@ -1164,6 +1550,12 @@ Function Test-IsGoogleOAuth2TokenExpired {
 			The id of the profile containing the access token to test. If the client profile does not
 			contain an access token, this will return false, unless the ErrorActionPreference is set to
 			stop, in which case an exception is thrown.
+
+		.PARAMETER Buffer
+			The number of seconds to buffer against the actual expiration. This defaults to 60, and can be between 1 and 60.
+
+			For example, if the buffer is set to 30, and the token expires in 25 seconds from now, the cmdlet would report
+			true for being expired. This helps ensure a token doesn't expire mid-request and isn't refreshed before being used.
 
 		.PARAMETER ProfileLocation
 			The location where stored credentials are located. If this is not specified, the default location will be used.
@@ -1195,7 +1587,7 @@ Function Test-IsGoogleOAuth2TokenExpired {
 
 		.NOTES
             AUTHOR: Michael Haken
-			LAST UPDATE: 1/12/2018
+			LAST UPDATE: 1/27/2018
 	#>
 	[CmdletBinding()]
 	[OutputType([System.Boolean])]
@@ -1209,7 +1601,11 @@ Function Test-IsGoogleOAuth2TokenExpired {
 		[System.String]$ClientId,
 
 		[Parameter()]
-        [System.String]$ProfileLocation
+        [System.String]$ProfileLocation,
+
+		[Parameter()]
+		[ValidateRange(1, 60)]
+		[System.Int32]$Buffer = 60
 	)
 
 	Begin {
@@ -1221,17 +1617,25 @@ Function Test-IsGoogleOAuth2TokenExpired {
 			"ClientId" {
 				[System.Collections.Hashtable]$Token = Get-GoogleOAuth2Profile -ClientId $ClientId -ProfileLocation $ProfileLocation
 
-				if (-not $Token.ContainsKey("access_token"))
+				if (-not $Token.ContainsKey($script:access_token))
 				{
 					# This will end processing
 					if ($ErrorActionPreference -eq [System.Management.Automation.ActionPreference]::Stop)
 					{
 						Write-Error -Exception (New-Object -TypeName System.Collections.Generic.KeyNotFoundException("There was no access token to verify for $ClientId.")) -ErrorAction Stop
 					}
+					elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
+					{
+						Write-Warning -Message "There was no access token to verify for $ClientId."
+					}
+					else
+					{
+						Write-Verbose -Message "[ERROR] There was no access token to verify for $ClientId."
+					}
 				}
 				else
 				{
-					$AccessToken = $Token["access_token"]
+					$AccessToken = $Token[$script:access_token]
 				}
 
 				break
@@ -1248,18 +1652,47 @@ Function Test-IsGoogleOAuth2TokenExpired {
 		# This will only be null or empty if the stored item was empty
 		if (-not [System.String]::IsNullOrEmpty($AccessToken))
 		{
-			[PSCustomObject]$TokenDetails = Get-GoogleOAuth2TokenInfo -AccessToken $AccessToken
+			try
+			{
+				[PSCustomObject]$TokenDetails = Get-GoogleOAuth2TokenInfo -AccessToken $AccessToken -ErrorAction Stop
 
-			[System.Int64]$Exp = $TokenDetails.exp
+				[System.Int64]$Exp = $TokenDetails.exp
 
-			[System.DateTime]$Epoch = New-Object -TypeName System.DateTime(1970, 1, 1, 0, 0, 0, [System.DateTimeKind]::Utc)
-			[System.DateTime]$Expiration = $Epoch.AddSeconds($Exp)
+				[System.DateTime]$Epoch = New-Object -TypeName System.DateTime(1970, 1, 1, 0, 0, 0, [System.DateTimeKind]::Utc)
+				[System.DateTime]$Expiration = $Epoch.AddSeconds($Exp)
 
-			Write-Verbose -Message "The supplied access token expires $($Expiration.ToString("yyyy-MM-ddTHH:mm:ssZ"))."
+				Write-Verbose -Message "The supplied access token expires $($Expiration.ToString("yyyy-MM-ddTHH:mm:ssZ"))."
 
-			$Expired = ([System.DateTime]::UtcNow) -gt $Expiration
+				[System.DateTime]$Now = [System.DateTime]::UtcNow
 
-			Write-Output -InputObject $Expired
+				$ExpiredWithoutBuffer = $Now -gt $Expiration
+
+				$ExpiredWithBuffer = $now -gt $Expiration.AddSeconds($Buffer)
+
+				if (-not $ExpiredWithoutBuffer -and $ExpiredWithBuffer)
+				{
+					Write-Verbose -Message "Although the access token is not actually expired, it is within the specified buffer of expiration, so should be refreshed."
+				}
+
+				Write-Output -InputObject $ExpiredWithBuffer
+			}
+			catch [Exception]
+			{
+				if ($ErrorActionPreference -eq [System.Management.Automation.ActionPreference]::Stop)
+				{
+					Write-Error -Exception $_.Exception -ErrorAction Stop
+				}
+				elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
+				{
+					Write-Warning -Message $_.Exception.Message
+				}
+				else
+				{
+					Write-Verbose -Message "[ERROR] : $($_.Exception.Message)"
+				}
+
+				Write-Output -InputObject $false
+			}
 		}
 		else
 		{
@@ -1344,13 +1777,13 @@ Function Get-GoogleOAuth2TokenInfo {
 			"ClientId" {
 				[System.Collections.Hashtable]$Token = Get-GoogleOAuth2Profile -ClientId $ClientId -ProfileLocation $ProfileLocation
 
-				if (-not $Token.ContainsKey("access_token"))
+				if (-not $Token.ContainsKey($script:access_token))
 				{
 					Write-Error -Message "There was no access token to verify for $ClientId." -ErrorAction Stop
 				}
 				else
 				{
-					$AccessToken = $Token["access_token"]
+					$AccessToken = $Token[$script:access_token]
 				}
 
 				break
@@ -1393,10 +1826,14 @@ Function Get-GoogleOAuth2TokenInfo {
             {
                 Write-Error -Message $Content
             }
-            else
+            elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
             {
                 Write-Warning -Message $Content
             }
+			else
+			{
+				Write-Verbose -Message "[ERROR] : $Content"
+			}
         }
         catch [Exception] 
         {
@@ -1404,10 +1841,14 @@ Function Get-GoogleOAuth2TokenInfo {
             {
                 Write-Error -Exception $_.Exception
             }
-            else
+            elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
             {
                 Write-Warning -Message $_.Exception.Message
             }
+			else
+			{
+				Write-Verbose -Message "[ERROR] : $($_.Exception.Message)"
+			}
         }
 	}
 
@@ -1650,6 +2091,7 @@ Function Set-GoogleOAuth2Profile {
 
         [Parameter(ParameterSetName = "client")]
 		[Parameter(ParameterSetName = "sa_access_token", Mandatory = $true)]
+		[Parameter(ParameterSetName = "sa")]
         [ValidateNotNullOrEmpty()]
         [System.String]$AccessToken,
 
@@ -1667,12 +2109,12 @@ Function Set-GoogleOAuth2Profile {
         [System.String]$Audience = "https://www.googleapis.com/oauth2/v4/token",
 
         [Parameter(ParameterSetName = "sa")]
-        [ValidateRange(1, 3600)]
-        [System.Int32]$ValidityInSeconds = 3600,
-
-        [Parameter(ParameterSetName = "sa")]
         [ValidateNotNullOrEmpty()]
         [System.String]$Subject,
+
+		[Parameter(ParameterSetName = "sa")]
+		[ValidateRange(1, 3600)]
+		[System.Int32]$ValidityInSeconds,
 
 		[Parameter()]
         [System.String]$ProfileLocation,
@@ -1722,6 +2164,13 @@ Function Set-GoogleOAuth2Profile {
             New-Item -Path $ProfileLocation -ItemType File -Force | Out-Null
         }
 
+		# Make sure the cache is loaded so that updates to what's stored in the cache are kept in sync
+		# with what's on disk
+		if ($Persist)
+		{
+			Sync-GoogleOAuth2ProfileCache -ProfileLocation $ProfileLocation
+		}
+
 		# This will hold the data supplied by the parameters for the token information to store
 		# Use a hashtable so it's easy to check property existence
 		[System.Collections.Hashtable]$Profile = @{}
@@ -1733,7 +2182,7 @@ Function Set-GoogleOAuth2Profile {
 				$ClientSecret = $ClientSecret.Replace("\n", "").Replace("\r", "").Replace("`r", "").Replace("`n", "")
 			}
 
-		    $Profile.Add("client_secret", (ConvertFrom-SecureString -SecureString (ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force)))
+		    $Profile.Add($script:client_secret, (ConvertFrom-SecureString -SecureString (ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force)))
 		}
 
         # Mandatory so we know what type of credentials these are
@@ -1751,7 +2200,7 @@ Function Set-GoogleOAuth2Profile {
             "sa_access_token" {
                 if ($PSBoundParameters.ContainsKey("AccessToken"))
 			    {
-				    $Profile.Add("access_token", (ConvertFrom-SecureString -SecureString (ConvertTo-SecureString -String $AccessToken -AsPlainText -Force)))
+				    $Profile.Add($script:access_token, (ConvertFrom-SecureString -SecureString (ConvertTo-SecureString -String $AccessToken -AsPlainText -Force)))
 			    }
 
                 break
@@ -1759,28 +2208,23 @@ Function Set-GoogleOAuth2Profile {
             "sa" {
 				[System.String[]]$Scope = $PSBoundParameters["Scope"]
 
-				[System.String[]]$FinalScopes = @()
-
-				foreach ($Item in $Scope)
+				$Profile.Add($script:scope, $Scope)
+				$Profile.Add($script:iss, $ServiceAccountEmail)
+				
+				if (-not [System.String]::IsNullOrEmpty($Subject))
 				{
-					if ($Item -notin $script:NoUrlScopes)
-					{
-						$FinalScopes += "https://www.googleapis.com/auth/$Item"
-					}
-					elseif ($Item -eq "cloud-platform-service-control")
-					{
-						# cloud-platform is used both with a preceding url for some services and without for cloud service control APIs
-						$FinalScopes += "cloud-platform"
-					}
-					else
-					{
-						$FinalScopes += $Item
-					}
+					$Profile.Add($script:sub, $Subject)
 				}
 
-				$JWT = New-GoogleServiceAccountJWT -ClientSecret $ClientSecret -Issuer $ServiceAccountEmail -Scope $FinalScopes -ValidityInSeconds $ValidityInSeconds -Subject $Subject
+				if ($PSBoundParameters.ContainsKey("AccessToken"))
+			    {
+				    $Profile.Add($script:access_token, (ConvertFrom-SecureString -SecureString (ConvertTo-SecureString -String $AccessToken -AsPlainText -Force)))
+			    }
 
-                $Profile.Add("jwt", (ConvertFrom-SecureString -SecureString (ConvertTo-SecureString -String $JWT -AsPlainText -Force)))
+				if ($PSBoundParameters.ContainsKey("ValidityInSeconds"))
+				{
+					$Profile.Add($script:validity, $ValidityInSeconds)
+				}
 
                 break
             }
@@ -1793,12 +2237,12 @@ Function Set-GoogleOAuth2Profile {
 
                 if ($PSBoundParameters.ContainsKey("AccessToken"))
 			    {
-				    $Profile.Add("access_token", (ConvertFrom-SecureString -SecureString (ConvertTo-SecureString -String $AccessToken -AsPlainText -Force)))
+				    $Profile.Add($script:access_token, (ConvertFrom-SecureString -SecureString (ConvertTo-SecureString -String $AccessToken -AsPlainText -Force)))
 			    }
 				
 			    if ($PSBoundParameters.ContainsKey("RefreshToken"))
 			    {
-				    $Profile.Add("refresh_token", (ConvertFrom-SecureString -SecureString (ConvertTo-SecureString -String $RefreshToken -AsPlainText -Force)))
+				    $Profile.Add($script:refresh_token, (ConvertFrom-SecureString -SecureString (ConvertTo-SecureString -String $RefreshToken -AsPlainText -Force)))
 			    }
 
                 break
@@ -1851,13 +2295,13 @@ Function Set-GoogleOAuth2Profile {
 			{
 				Write-Verbose -Message "The profile $ClientId may be overwritten with new data."
 				
-				[System.String[]]$EncryptedProperties = @("access_token", "refresh_token", "client_secret", "jwt")
-
-				foreach ($Property in $script:EncryptedProperties)
+				# Go through each property in the profile and compare it against the stored profile data to see if we
+				# need to add or update fields
+				foreach ($Property in ($Profile.GetEnumerator() | Select-Object -ExpandProperty Name))
 				{
-					if ($Profile.ContainsKey($Property))
+					if (($ProfileData.$ClientId | Get-Member -Name $Property -MemberType Properties) -ne $null)
 					{
-						if (($ProfileData.$ClientId | Get-Member -Name $Property -MemberType Properties) -ne $null)
+						if ($Property -iin $script:EncryptedProperties)
 						{
 							# Since the DPAPI uses a time factor to generate the encryption, the encrypted data is different
 							# each time the encryption is performed, convert the encrypyted string to a secure string
@@ -1875,12 +2319,22 @@ Function Set-GoogleOAuth2Profile {
 						}
 						else
 						{
-							$ProfileData.$ClientId | Add-Member -MemberType NoteProperty -Name $Property -Value $Profile[$Property]
-						
-							# Note that an update actually happened
-							$ChangeOccured = $true
-						}					
+							if ($ProfileData.$ClientId.$Property -ne $Profile["$Property"])
+							{
+								$ProfileData.$ClientId.$Property = $Profile[$Property]
+							
+								# Note that an update actually happened
+								$ChangeOccured = $true
+							}
+						}
 					}
+					else
+					{
+						$ProfileData.$ClientId | Add-Member -MemberType NoteProperty -Name $Property -Value $Profile[$Property]
+						
+						# Note that an update actually happened
+						$ChangeOccured = $true
+					}	
 				}
 			}
 			else 
@@ -1906,7 +2360,7 @@ Function Set-GoogleOAuth2Profile {
 			}
 		}
 		
-		Write-Verbose -Message "Successfully created or updated the profile for $ClientId"
+		Write-Verbose -Message "Successfully created or updated the profile for $ClientId."
 	}
 
 	End {
@@ -2020,13 +2474,13 @@ Function Remove-GoogleOAuth2Profile {
 					{
 						$Token = ""
 
-						if ($Profile.ContainsKey("access_token"))
+						if ($Profile.ContainsKey($script:access_token))
 						{
-							$Token = $Profile["access_token"]
+							$Token = $Profile[$script:access_token]
 						}
-						elseif ($Profile.ContainsKey("refresh_token"))
+						elseif ($Profile.ContainsKey($script:refresh_token))
 						{
-							$Token = $Profile["refresh_token"]
+							$Token = $Profile[$script:refresh_token]
 						}
 						else
 						{
@@ -2056,9 +2510,13 @@ Function Remove-GoogleOAuth2Profile {
 								{
 									Write-Error -Message $Content
 								}
-								else
+								elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
 								{
 									Write-Warning -Message $Content
+								}
+								else
+								{
+									Write-Verbose -Message "[ERROR] : $Content"
 								}
 							}
 							catch [Exception] 
@@ -2067,14 +2525,17 @@ Function Remove-GoogleOAuth2Profile {
 								{
 									Write-Error -Exception $_.Exception
 								}
-								else
+								elseif ($ErrorActionPreference -ne [System.Management.Automation.ActionPreference]::SilentlyContinue)
 								{
 									Write-Warning -Message $_.Exception.Message
+								}
+								else
+								{
+									Write-Verbose -Message "[ERROR] : $($_.Exception.Message)"
 								}
 							}
 						}
 					}
-
 
 					# This returns void, so do it first, then pass the ProfileData variable
 					$ProfileData.PSObject.Properties.Remove($ClientId)
