@@ -8,7 +8,13 @@ client credentials require the use of a web browser the first time during the au
 first time, the access token and refresh token are cached for use throughout the rest of the script using these cmdlets, or optionally
 persisted to disk so you can continue to use the set of tokens without needing to use a web browser again.
 
-All sensitive data that is persisted in cache or on disk is encrypted using the Windows DPAPI.
+All sensitive data that is persisted in cache or on disk is encrypted using the Windows DPAPI. Because the access tokens, refresh tokens,
+and service account private keys are very sensitive data, all cmdlets that either retrieve or refresh tokens have an optional -Persist
+parameter. The profile data, indexed by the ClientId, is automatically saved to an in-memory cache that persists while the module
+is loaded. However, it is never saved to disk unless the -Persist option is specified. If you have initially persisted profile data to disk,
+but then subsequently call a command that updates an access token, like Update-GoogleOAuth2Token, but do not specifiy -Persist, the new
+token is not written to disk, but is updated in the in memory cache. Calling Sync-GoogleOAuth2Profiles, or any cmdlet that calls that
+cmdlet on your behalf would overwrite the new access token in the cache with the old value.
 
 Assume the appropriate strings are assigned to $ClientId and $ClientSecret in the following examples
 
