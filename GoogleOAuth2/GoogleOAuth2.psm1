@@ -1596,7 +1596,7 @@ Function New-GoogleServiceAccountJWT {
 
         [System.Security.Cryptography.RSACryptoServiceProvider]$RSA = ConvertFrom-PEM -PEM $ClientSecret
         
-        [System.Byte[]]$Sig = $RSA.SignData($SigningData, "SHA256")
+        [System.Byte[]]$Sig = $RSA.SignData($SigningData, [System.Security.Cryptography.HashAlgorithmName]::SHA256, [System.Security.Cryptography.RSASignaturePadding]::Pkcs1)
 
         [System.String]$JWTSignature = ConvertTo-Base64UrlEncoding -Bytes $Sig
 
