@@ -1106,13 +1106,13 @@ Function Get-GoogleOAuth2Token {
 					Write-Verbose "No stored access token for $ClientId"
 					if ($Token.ContainsKey($script:scope) -and $Token.ContainsKey($script:iss) -and $Token.ContainsKey($script:client_secret))
 					{
-						[System.Collections.Hashtable]$SubSplat = @{}
+						[System.Collections.Hashtable]$JWTSplat = @{}
 						if ($Token.Contains($script:sub) -and -not [System.String]::IsNullOrEmpty($Token[$script:sub]))
 						{
-							$SubSplat.Add("Subject", $Token[$script:sub])
+							$JWTSplat.Add("Subject", $Token[$script:sub])
 						}
 
-						[System.String]$NewJWT = New-GoogleServiceAccountJWT -ClientSecret $Token[$script:client_secret] -Issuer $Token[$script:iss] -Scope $Token[$script:scop] @SubSplat
+						[System.String]$NewJWT = New-GoogleServiceAccountJWT -ClientSecret $Token[$script:client_secret] -Issuer $Token[$script:iss] -Scope $Token[$script:scope] @JWTSplat
 						[System.Collections.Hashtable]$TokenFromJWT = Convert-GoogleOAuth2JWT -JWT $NewJWT -ClientId $ClientId -ProfileLocation $ProfileLocation -Persist:$Persist
 						Write-Output -InputObject $TokenFromJWT
 					}

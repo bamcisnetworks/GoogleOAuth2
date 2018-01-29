@@ -81,5 +81,8 @@ a refresh.
 
 ## Release History
 
+### 1.0.0.1
+Fixed minor typo bug in Get-GoogleOAuth2Token.
+
 ### 1.0.0.0
 Initial Release
