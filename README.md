@@ -16,7 +16,7 @@ but then subsequently call a command that updates an access token, like Update-G
 token is not written to disk, but is updated in the in memory cache. Calling Sync-GoogleOAuth2Profiles, or any cmdlet that calls that
 cmdlet on your behalf would overwrite the new access token in the cache with the old value.
 
-Assume the appropriate strings are assigned to $ClientId and $ClientSecret in the following examples
+Assume the appropriate strings are assigned to $ClientId and $ClientSecret in the following examples. Get the client id and client secret using the steps outlined [here](#https://developers.google.com/identity/protocols/OAuth2/). For scripting, use the "Other" client type.
 
 ### OAuth2 Client Credential Examples
 
@@ -80,6 +80,9 @@ a refresh.
 	$Groups = Get-GoogleAdminGroups -BearerToken $Token["access_token"]
 
 ## Release History
+
+### 1.0.1.0
+Updated available scopes and added UseBasicParsing to all web requests.
 
 ### 1.0.0.1
 Fixed minor typo bug in Get-GoogleOAuth2Token.

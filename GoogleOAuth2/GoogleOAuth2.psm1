@@ -9,7 +9,7 @@ $script:ProfileLocation = "$env:USERPROFILE\.google\credentials"
 [System.String]$script:scope = "scope"
 [System.String]$script:sub = "sub"
 
-[System.String[]]$script:NoUrlScopes = @("https://mail.google.com/", "https://www.google.com/calendar/feeds", "https://www.google.com/m8/feeds", "profile", "email", "openid", "servicecontrol", "cloud-platform-service-control", "service.management-service-management")
+[System.String[]]$script:NoUrlScopes = @("https://mail.google.com/", "https://www.google.com/calendar/feeds", "https://www.google.com/m8/feeds", "profile", "email", "openid", "servicecontrol", "cloud-platform-service-control")
 [System.String[]]$script:EncryptedProperties = @($script:access_token, $script:refresh_token, $script:client_secret)
 [System.String[]]$script:Scopes = @(
 	"activity",
@@ -55,10 +55,12 @@ $script:ProfileLocation = "$env:USERPROFILE\.google\credentials"
 	"analytics.manage.users.readonly",
 	"analytics.provision",
 	"analytics.readonly",
+	"analytics.user.deletion",
 	"androidenterprise",
 	"androidmanagement",
 	"androidpublisher",
 	"appengine.admin",
+	"apps.alerts",
 	"apps.groups.migration",
 	"apps.groups.settings",
 	"apps.licensing",
@@ -67,11 +69,19 @@ $script:ProfileLocation = "$env:USERPROFILE\.google\credentials"
 	"appstate",
 	"bigquery",
 	"bigquery.insertdata",
+	"bigquery.readonly",
+	"bigtable.admin",
+	"bigtable.admin.cluster",
+	"bigtable.admin.instance",
+	"bigtable.admin.table",
 	"blogger",
 	"blogger.readonly",
 	"books",
 	"calendar",
+	"calendar.events",
+	"calendar.events.readonly",
 	"calendar.readonly",
+	"calendar.settings.readonly",
 	"classroom.announcements",
 	"classroom.announcements.readonly",
 	"classroom.courses",
@@ -90,10 +100,27 @@ $script:ProfileLocation = "$env:USERPROFILE\.google\credentials"
 	"classroom.rosters.readonly",
 	"classroom.student-submissions.me.readonly",
 	"classroom.student-submissions.students.readonly",
+	"classroom.topics",
+	"classroom.topics.readonly",
 	"cloud.useraccounts",
 	"cloud.useraccounts.readonly",
 	"cloud_debugger",
+	"cloud_search",
+	"cloud_search.debug",
+	"cloud_search.indexing",
+	"cloud_search.query",
+	"cloud_search.settings",
+	"cloud_search.settings.indexing",
+	"cloud_search.settings.query",
+	"cloud_search.stats",
+	"cloud_search.stats.indexing",
 	"cloudiot",
+	"cloudkms",
+	"cloud-bigtable.admin",
+	"cloud-bigtable.admin.cluster",
+	"cloud-bigtable.admin.table",
+	"cloud-identity.groups",
+	"cloud-identity.groups.readonly",
 	"cloud-language",
 	"cloud-platform",
 	"cloud-platform.read-only",
@@ -113,9 +140,14 @@ $script:ProfileLocation = "$env:USERPROFILE\.google\credentials"
 	"devstorage.read_write",
 	"dfareporting",
 	"dfatrafficking",
+	"dialogflow",
+	"documents",
+	"documents.readonly",
 	"doubleclickbidmanager",
 	"doubleclicksearch",
 	"drive",
+	"drive.activity",
+	"drive.activity"
 	"drive.appdata",
 	"drive.file",
 	"drive.metadata",
@@ -168,6 +200,8 @@ $script:ProfileLocation = "$env:USERPROFILE\.google\credentials"
 	"https://mail.google.com/",
 	"https://www.google.com/calendar/feeds",
 	"https://www.google.com/m8/feeds",
+	"indexing",
+	"jobs",
 	"logging.admin",
 	"logging.read",
 	"logging.write",
@@ -180,24 +214,20 @@ $script:ProfileLocation = "$env:USERPROFILE\.google\credentials"
 	"ndev.cloudman",
 	"ndev.cloudman.readonly",
 	"openid",
-	"plus.circles.read",
-	"plus.circles.write",
-	"plus.login",
-	"plus.me",
-	"plus.media.upload",
-	"plus.profiles.read",
-	"plus.stream.read",
-	"plus.stream.write",
-	"prediction",
 	"presentations",
 	"presentations.readonly",
 	"profile",
 	"pubsub",
 	"replicapool",
 	"replicapool.readonly",
+	"script.deployments",
+	"script.deployments.readonly",
+	"script.metrics",
+	"script.processes",
+	"script.projects",
+	"script.projects.readonly",
 	"service.management",
 	"service.management.readonly",
-	"service.management-service-management",
 	"servicecontrol",
 	"siteverification",
 	"siteverification.verify_only",
@@ -217,8 +247,6 @@ $script:ProfileLocation = "$env:USERPROFILE\.google\credentials"
 	"tagmanager.manage.users",
 	"tagmanager.publish",
 	"tagmanager.readonly",
-	"taskqueue",
-	"taskqueue.consumer",
 	"tasks",
 	"tasks.readonly",
 	"trace.append",
@@ -232,7 +260,6 @@ $script:ProfileLocation = "$env:USERPROFILE\.google\credentials"
 	"userlocation.beacon.registry",
 	"webmasters",
 	"webmasters.readonly",
-	"xapi.zoo",
 	"youtube",
 	"youtube.force-ssl",
 	"youtube.readonly",
@@ -501,7 +528,7 @@ Function Get-GoogleOAuth2Code {
 			$Code = ""
 
 			# Get the redirect url
-			[Microsoft.PowerShell.Commands.WebResponseObject]$RedirectResponse = Invoke-WebRequest -Uri $OAuth -Method Get -MaximumRedirection 0 -ErrorAction Ignore -UserAgent PowerShell
+			[Microsoft.PowerShell.Commands.WebResponseObject]$RedirectResponse = Invoke-WebRequest -Uri $OAuth -Method Get -MaximumRedirection 0 -ErrorAction Ignore -UserAgent PowerShell -UseBasicParsing
         
 			Write-Verbose -Message "Response Code: $($RedirectResponse.StatusCode)"
 
@@ -587,11 +614,19 @@ Function Get-GoogleOAuth2Code {
 		{
 			[System.Net.WebException]$Ex = $_.Exception
 			[System.Net.HttpWebResponse]$Response = [System.Net.HttpWebResponse]($Ex.Response)
-			[System.IO.Stream]$Stream = $Ex.Response.GetResponseStream()
-			[System.IO.StreamReader]$Reader = New-Object -TypeName System.IO.StreamReader($Stream, [System.Text.Encoding]::UTF8)
-			[System.String]$Content = $Reader.ReadToEnd()
-			[System.Int32]$StatusCode = $Response.StatusCode.value__
-			[System.String]$Message = "$StatusCode : $Content"
+			
+			if ($Response -ne $null)
+			{
+				[System.IO.Stream]$Stream = $Response.GetResponseStream()
+				[System.IO.StreamReader]$Reader = New-Object -TypeName System.IO.StreamReader($Stream, [System.Text.Encoding]::UTF8)
+				[System.String]$Content = $Reader.ReadToEnd()
+				[System.Int32]$StatusCode = $Response.StatusCode.value__
+				[System.String]$Message = "$StatusCode : $Content"
+			}
+			else
+			{
+				$Message = $Ex.Message
+			}
 
 			if ($ErrorActionPreference -eq [System.Management.Automation.ActionPreference]::Stop)
 			{
@@ -716,7 +751,7 @@ Function Convert-GoogleOAuth2Code {
 
 		try 
 		{
-			[Microsoft.PowerShell.Commands.WebResponseObject]$Response = Invoke-WebRequest -Uri $Url -Method Post -UserAgent PowerShell
+			[Microsoft.PowerShell.Commands.WebResponseObject]$Response = Invoke-WebRequest -Uri $Url -Method Post -UserAgent PowerShell -UseBasicParsing
 
 			Write-Verbose -Message $Response.Content
 
@@ -895,7 +930,17 @@ Function Request-GoogleOAuth2Token {
 		{
 			"Default" {
 				[System.String[]]$Scope = $PSBoundParameters["Scope"]
-				$Code = Get-GoogleOAuth2Code -ClientId $ClientId -Scope $Scope
+				$Temp = Get-GoogleOAuth2Code -ClientId $ClientId -Scope $Scope
+
+				if ($Temp -eq $null)
+				{
+					throw "Could not get OAuth code."
+				}
+				else
+				{
+					$Code = $Temp
+				}
+
 				$Token = Convert-GoogleOAuth2Code -Code $Code -ClientId $ClientId -ClientSecret $ClientSecret -ProfileLocation $ProfileLocation -Persist:$Persist
 				Write-Output -InputObject $Token
 				break
@@ -1260,7 +1305,7 @@ Function Update-GoogleOAuth2Token {
 
         try
         {
-            [Microsoft.PowerShell.Commands.WebResponseObject]$Response = Invoke-WebRequest -Uri $Url -Method Post -UserAgent PowerShell
+            [Microsoft.PowerShell.Commands.WebResponseObject]$Response = Invoke-WebRequest -Uri $Url -Method Post -UserAgent PowerShell -UseBasicParsing
 
             if ($Response.StatusCode -eq 200)
             {
@@ -1427,7 +1472,7 @@ Function Convert-GoogleOAuth2JWT {
 
 		try {
 			Write-Verbose -Message "POST Body: $Body"
-			[Microsoft.PowerShell.Commands.WebResponseObject]$Response = Invoke-WebRequest -Uri $BaseUrl -Method Post -Body $Body -ErrorAction Stop -UserAgent PowerShell
+			[Microsoft.PowerShell.Commands.WebResponseObject]$Response = Invoke-WebRequest -Uri $BaseUrl -Method Post -Body $Body -ErrorAction Stop -UserAgent PowerShell -UseBasicParsing
 
 			[PSCustomObject]$Token = ConvertFrom-Json -InputObject ($Response.Content)
 
@@ -1882,7 +1927,7 @@ Function Get-GoogleOAuth2TokenInfo {
 
 		try
 		{
-			[Microsoft.PowerShell.Commands.HtmlWebResponseObject]$Response = Invoke-WebRequest -Method Post -Uri $Url -UserAgent PowerShell
+			[Microsoft.PowerShell.Commands.WebResponseObject]$Response = Invoke-WebRequest -Method Post -Uri $Url -UserAgent PowerShell -UseBasicParsing
 
 			[PSCustomObject]$Data = ConvertFrom-Json -InputObject $Response.Content
 
@@ -2575,7 +2620,7 @@ Function Remove-GoogleOAuth2Profile {
 						{
 							try
 							{
-								[Microsoft.PowerShell.Commands.WebResponseObject]$Response = Invoke-WebRequest -Uri "https://accounts.google.com/o/oauth2/revoke?token=$Token" -Method Post -UserAgent PowerShell
+								[Microsoft.PowerShell.Commands.WebResponseObject]$Response = Invoke-WebRequest -Uri "https://accounts.google.com/o/oauth2/revoke?token=$Token" -Method Post -UserAgent PowerShell -UseBasicParsing
 
 								if ($Response.StatusCode -ne 200)
 								{
